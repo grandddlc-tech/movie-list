@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0364f"/><stop offset="1" stop-color="#5a0512"/></linearGradient>
+<radialGradient id="glow" cx=".5" cy=".12" r=".75"><stop offset="0" stop-color="#ffd27a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe49a"/><stop offset="1" stop-color="#e0a133"/></linearGradient>
+<clipPath id="c1"><rect x="116" y="214" width="280" height="46"/></clipPath>
+<clipPath id="c2"><rect x="116" y="152" width="280" height="46" rx="10"/></clipPath>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<rect width="512" height="512" rx="112" fill="url(#glow)"/>
+<g transform="translate(256 280) scale(1) translate(-256 -280)">
+ <rect x="116" y="214" width="280" height="196" rx="24" fill="#141016"/>
+ <rect x="116" y="214" width="280" height="46" fill="#f4efe4"/>
+ <g clip-path="url(#c1)"><polygon points="76,260 96,214 116,214 96,260" fill="#141016"/><polygon points="116,260 136,214 156,214 136,260" fill="#141016"/><polygon points="156,260 176,214 196,214 176,260" fill="#141016"/><polygon points="196,260 216,214 236,214 216,260" fill="#141016"/><polygon points="236,260 256,214 276,214 256,260" fill="#141016"/><polygon points="276,260 296,214 316,214 296,260" fill="#141016"/><polygon points="316,260 336,214 356,214 336,260" fill="#141016"/><polygon points="356,260 376,214 396,214 376,260" fill="#141016"/><polygon points="396,260 416,214 436,214 416,260" fill="#141016"/><polygon points="436,260 456,214 476,214 456,260" fill="#141016"/></g>
+ <rect x="116" y="236" width="280" height="24" fill="none"/>
+ <g transform="rotate(-13 122 206)">
+  <rect x="116" y="152" width="280" height="46" rx="10" fill="#f4efe4"/>
+  <g clip-path="url(#c2)"><polygon points="76,198 96,152 116,152 96,198" fill="#141016"/><polygon points="116,198 136,152 156,152 136,198" fill="#141016"/><polygon points="156,198 176,152 196,152 176,198" fill="#141016"/><polygon points="196,198 216,152 236,152 216,198" fill="#141016"/><polygon points="236,198 256,152 276,152 256,198" fill="#141016"/><polygon points="276,198 296,152 316,152 296,198" fill="#141016"/><polygon points="316,198 336,152 356,152 336,198" fill="#141016"/><polygon points="356,198 376,152 396,152 376,198" fill="#141016"/><polygon points="396,198 416,152 436,152 416,198" fill="#141016"/><polygon points="436,198 456,152 476,152 456,198" fill="#141016"/></g>
+ </g>
+ <circle cx="128" cy="207" r="11" fill="#f4efe4" stroke="#141016" stroke-width="5"/>
+ <polygon points="256.0,280.0 270.1,318.6 311.2,320.1 278.8,345.4 290.1,384.9 256.0,362.0 221.9,384.9 233.2,345.4 200.8,320.1 241.9,318.6" fill="url(#gold)"/>
+</g></svg>
