@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a090c">
+<meta name="description" content="Your personal movie watchlist: posters, genres, ratings, notes and a random pick for tonight.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reel List">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Reel List — My Movie Watchlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a090c;--surface:#16131b;--surface2:#201c27;--surface3:#2a2533;
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);
+  --text:#f4efe4;--muted:#a59e92;--dim:#6c665d;
+  --gold:#f0bf5a;--gold2:#d4952a;--red:#b3122a;--red2:#e0364f;
+  --want:#f0bf5a;--watching:#5aa9ff;--watched:#4fd18b;
+  --radius:14px;
+  --display:'Bebas Neue',Impact,'Arial Narrow',sans-serif;
+  --sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;color:var(--text);font:15px/1.5 var(--sans);
+  background:var(--bg);
+  background-image:
+    radial-gradient(1100px 520px at 50% -220px,rgba(179,18,42,.38),transparent 70%),
+    radial-gradient(700px 380px at 100% 0,rgba(240,191,90,.07),transparent 60%);
+  background-attachment:fixed;
+}
+body.noscroll{overflow:hidden}
+/* velvet curtains on wide screens */
+body::before,body::after{
+  content:"";position:fixed;top:0;bottom:0;width:64px;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(90deg,#33050e 0 9px,#5e0b19 9px 17px,#26030a 17px 24px);
+  opacity:.6;
+  -webkit-mask-image:linear-gradient(90deg,#000,transparent);mask-image:linear-gradient(90deg,#000,transparent);
+}
+body::before{left:0}
+body::after{right:0;transform:scaleX(-1)}
+@media (max-width:1000px){body::before,body::after{display:none}}
+
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--line2);background:var(--surface2);color:var(--text);
+  padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;white-space:nowrap;
+  transition:transform .12s,background .15s,border-color .15s,box-shadow .15s;
+  text-decoration:none;
+}
+.btn:hover{background:var(--surface3);border-color:rgba(255,255,255,.24)}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.gold{background:linear-gradient(180deg,#f7cf72,#d99a2b);color:#1a1206;border-color:#f7cf72;box-shadow:0 6px 24px -8px rgba(240,191,90,.6)}
+.btn.gold:hover{background:linear-gradient(180deg,#ffd982,#e3a637)}
+.btn.ghost{background:transparent}
+.btn.ghost:hover{background:rgba(255,255,255,.06)}
+.btn.danger{background:transparent;color:#ff8a9a;border-color:rgba(224,54,79,.45)}
+.btn.danger:hover{background:rgba(224,54,79,.12)}
+.btn.sm{padding:8px 12px;font-size:13px}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.5;pointer-events:none}
+
+/* ---------- header ---------- */
+.top{padding:calc(22px + env(safe-area-inset-top)) 0 8px}
+.top-inner{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{
+  width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(145deg,var(--red2),#6d0715);box-shadow:0 8px 24px -6px rgba(224,54,79,.6),inset 0 1px 0 rgba(255,255,255,.25);
+}
+.logo svg{width:26px;height:26px}
+.brand h1{font-family:var(--display);font-weight:400;font-size:38px;letter-spacing:2px;line-height:1;margin:0}
+.brand h1 span{color:var(--gold)}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:8px}
+.btn.install{border-color:rgba(240,191,90,.55);color:var(--gold)}
+.btn.install:hover{background:rgba(240,191,90,.1)}
+.offline-pill{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#ffcf8a;background:rgba(240,191,90,.1);border:1px solid rgba(240,191,90,.35);padding:3px 10px;border-radius:99px;margin-top:6px}
+.app-icon{width:56px;height:56px;border-radius:14px;flex:none}
+.install-box{display:flex;gap:14px;align-items:center}
+
+/* ---------- hero / marquee ---------- */
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:stretch;margin-top:18px}
+.marquee{
+  padding:9px;border-radius:20px;
+  background:
+    radial-gradient(circle,#ffe6a8 0 2.2px,rgba(255,200,90,.35) 3.4px,transparent 5px) 0 0/18px 18px,
+    linear-gradient(180deg,#3b2a0e,#241805);
+  box-shadow:0 20px 50px -20px rgba(240,191,90,.35);
+  animation:chase 1.6s linear infinite;
+}
+@keyframes chase{to{background-position:18px 0,0 0}}
+.marquee-inner{background:linear-gradient(180deg,#1b1720,#121016);border-radius:12px;padding:18px}
+.marquee-label{font-family:var(--display);letter-spacing:3px;font-size:15px;color:var(--gold);margin-bottom:8px}
+.add{display:flex;gap:10px}
+.add input{
+  flex:1;min-width:0;background:#0d0b10;border:1px solid var(--line2);border-radius:10px;
+  padding:13px 14px;font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.add input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,191,90,.18)}
+.hint{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.hint button{background:none;border:0;padding:0;color:var(--gold);text-decoration:underline;font-size:13px}
+.random{
+  border-radius:20px;padding:18px 26px;font-family:var(--display);font-size:24px;font-weight:400;letter-spacing:1.5px;
+  background:linear-gradient(160deg,#c9182f,#7a0717);border:1px solid #e0364f;color:#fff;
+  box-shadow:0 18px 40px -16px rgba(224,54,79,.7),inset 0 1px 0 rgba(255,255,255,.2);
+  flex-direction:column;gap:2px;white-space:normal;text-align:center;max-width:260px;line-height:1.05;
+}
+.random:hover{background:linear-gradient(160deg,#dc2139,#8a0a1c);border-color:#ff5a70}
+.random .dice{font-size:34px;line-height:1;transition:transform .4s}
+.random:hover .dice{transform:rotate(200deg)}
+
+/* ---------- controls ---------- */
+.controls{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;
+  font-size:14px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.tab .dot{width:8px;height:8px;border-radius:50%}
+.tab .n{font-size:12px;background:rgba(255,255,255,.07);padding:1px 8px;border-radius:99px;color:var(--text)}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);border-color:var(--line2);background:var(--surface3)}
+.row{display:flex;gap:10px}
+.search{flex:1;position:relative;min-width:0}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--dim)}
+.search input,.select{
+  width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px 10px 38px;outline:none;font-size:15px;
+}
+.search input:focus,.select:focus{border-color:var(--line2)}
+.select{width:auto;padding:10px 34px 10px 12px;appearance:none;-webkit-appearance:none;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a59e92' stroke-width='3'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;}
+.select option{background:#16131b}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted);
+  transition:all .15s;
+}
+.chip:hover{color:var(--text);border-color:var(--line2)}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#1a1206;font-weight:600}
+.chip .c{opacity:.6;margin-left:4px;font-size:12px}
+
+/* ---------- grid / cards ---------- */
+main{padding-top:22px;padding-bottom:40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:22px 18px}
+.card{cursor:pointer;outline:none;border-radius:var(--radius);animation:pop .35s ease both}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.poster{
+  position:relative;aspect-ratio:2/3;border-radius:var(--radius);overflow:hidden;background:var(--surface2);
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.9),0 0 0 1px var(--line);
+  transition:transform .25s,box-shadow .25s;
+}
+.poster img{width:100%;height:100%;object-fit:cover;display:block}
+.card:hover .poster,.card:focus-visible .poster{transform:translateY(-4px);box-shadow:0 22px 40px -14px rgba(0,0,0,.95),0 0 0 2px var(--gold)}
+.card.flash .poster{animation:flash 1.4s ease}
+@keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--gold),0 0 40px rgba(240,191,90,.6)}}
+.badge{
+  position:absolute;left:8px;top:8px;font-size:11px;font-weight:700;letter-spacing:.3px;padding:4px 8px;border-radius:7px;
+  background:rgba(10,9,12,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;gap:6px;
+}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.b-want{color:var(--want)}.b-watching{color:var(--watching)}.b-watched{color:var(--watched)}
+.rate{position:absolute;right:8px;top:8px;font-size:12px;font-weight:700;padding:4px 8px;border-radius:7px;background:rgba(10,9,12,.78);color:var(--gold)}
+.poster::after{content:"";position:absolute;inset:auto 0 0 0;height:30%;background:linear-gradient(transparent,rgba(0,0,0,.45));pointer-events:none}
+.info{padding:10px 2px 0}
+.info h3{margin:0;font-size:15px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{color:var(--muted);font-size:12.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stars{color:var(--gold);letter-spacing:1px;font-size:13px;margin-top:2px}
+.stars .off{color:var(--dim)}
+.note-snip{color:var(--muted);font-size:12.5px;font-style:italic;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* placeholder poster */
+.ph{
+  width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:14px;
+  background:
+    radial-gradient(120% 70% at 50% 0,hsla(var(--h),70%,45%,.55),transparent 70%),
+    linear-gradient(180deg,hsl(var(--h),35%,16%),#0d0b10);
+  position:relative;
+}
+.ph::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:16px;
+  background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.55) 6px 14px,transparent 14px 20px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.ph-icon{font-size:26px;opacity:.55}
+.ph-title{font-family:var(--display);font-size:26px;line-height:1;letter-spacing:1px;word-break:break-word;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+
+/* empty state */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .big{font-family:var(--display);font-size:42px;letter-spacing:2px;color:var(--text);margin:8px 0 4px}
+.empty .reel{font-size:56px}
+.empty ol{display:inline-block;text-align:left;margin:14px auto 0;padding-left:20px;line-height:1.9}
+
+footer{color:var(--dim);font-size:12.5px;text-align:center;padding:10px 20px 40px;position:relative;z-index:1}
+
+/* ---------- modals ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:50;background:rgba(5,4,7,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .2s;
+}
+.overlay.show{opacity:1}
+.sheet{
+  position:relative;width:100%;max-width:480px;max-height:calc(100vh - 40px);overflow:auto;
+  background:linear-gradient(180deg,#1c1822,#141117);border:1px solid var(--line2);border-radius:18px;
+  padding:24px;box-shadow:0 40px 80px -20px rgba(0,0,0,.9);
+  transform:translateY(12px) scale(.98);transition:transform .25s;
+}
+.overlay.show .sheet{transform:none}
+.sheet.wide{max-width:820px}
+.sheet h2{font-family:var(--display);font-weight:400;font-size:32px;letter-spacing:1.5px;margin:0 0 4px;line-height:1.1}
+.sheet h3{font-size:15px;margin:22px 0 6px}
+.sheet p{margin:6px 0}
+.muted{color:var(--muted)}
+.x{
+  position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(0,0,0,.3);font-size:22px;line-height:1;display:grid;place-items:center;color:var(--muted);z-index:2;
+}
+.x:hover{color:var(--text);border-color:var(--line2)}
+.label{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.field{width:100%;background:#0d0b10;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;outline:none;font-size:15px}
+.field:focus{border-color:var(--gold)}
+textarea.field{resize:vertical;min-height:80px;line-height:1.45}
+
+/* editor */
+.editor{display:grid;grid-template-columns:220px 1fr;gap:24px}
+.ed-poster{display:flex;flex-direction:column;gap:8px}
+.ed-poster .poster{border-radius:12px;transition:box-shadow .15s}
+.ed-poster .poster.drag{box-shadow:0 0 0 3px var(--gold)}
+.ed-poster .small-note{font-size:11.5px;color:var(--dim);text-align:center}
+.title-input{
+  width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line2);outline:none;
+  font-family:var(--display);font-size:36px;letter-spacing:1px;line-height:1.15;padding:0 40px 4px 0;
+}
+.title-input:focus{border-bottom-color:var(--gold)}
+.year-row{display:flex;align-items:center;gap:10px;margin-top:10px;color:var(--muted);font-size:14px}
+.year-row input{width:90px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0d0b10;border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:9px 6px;font-weight:600;font-size:13.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.seg button::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.9}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--surface3);color:var(--text);box-shadow:inset 0 0 0 1px var(--line2)}
+.seg button[data-s=want]::before{background:var(--want)}
+.seg button[data-s=watching]::before{background:var(--watching)}
+.seg button[data-s=watched]::before{background:var(--watched)}
+.seg.plain button::before{display:none}
+.review{margin-top:14px;padding:14px;border-radius:12px;background:rgba(79,209,139,.06);border:1px solid rgba(79,209,139,.2)}
+.review.locked{background:rgba(255,255,255,.03);border-color:var(--line);color:var(--muted);font-size:13.5px}
+.star-input{display:inline-flex;flex-direction:row}
+.star-input button{background:none;border:0;font-size:32px;line-height:1;padding:0 3px;color:var(--gold);transition:transform .1s}
+.star-input button.off{color:#3d3743}
+.star-input:hover button{color:var(--gold)}
+.star-input button:hover ~ button{color:#3d3743}
+.star-input button:hover{transform:scale(1.15)}
+.rating-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rating-row .lbl{font-size:13px;color:var(--muted)}
+.review textarea{margin-top:10px}
+.ed-foot{display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.ed-foot .muted{font-size:12.5px;margin-right:auto}
+
+/* search results */
+.results{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.result{
+  display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center;text-align:left;
+  border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px;width:100%;
+}
+.result:hover{border-color:var(--gold);background:var(--surface2)}
+.result .thumb{width:56px;aspect-ratio:2/3;border-radius:7px;overflow:hidden;background:var(--surface3)}
+.result .thumb img{width:100%;height:100%;object-fit:cover}
+.result .thumb .ph{padding:4px}
+.result .thumb .ph-title{font-size:11px}
+.result .thumb .ph-icon,.result .thumb .ph::before{display:none}
+.result b{font-size:15px}
+.result .yr{color:var(--muted);font-weight:500;margin-left:6px}
+.result .ov{color:var(--muted);font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
+.result .gn{color:var(--gold);font-size:12px;margin-top:2px}
+.spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--gold);animation:spin .8s linear infinite;margin:30px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{padding:14px;border-radius:10px;background:rgba(224,54,79,.1);border:1px solid rgba(224,54,79,.35);color:#ffb3be;font-size:14px;margin-top:14px}
+
+/* settings */
+.key-row{display:flex;gap:8px;margin-top:10px}
+.key-row .field{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+.status-line{font-size:13.5px;margin-top:8px;min-height:20px}
+.status-line.ok{color:var(--watched)}.status-line.err{color:#ff8a9a}
+details{border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-top:10px;background:rgba(255,255,255,.02)}
+details summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between;gap:8px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";color:var(--gold);font-size:18px;line-height:1}
+details[open] summary::after{content:"–"}
+details ol{margin:0 0 14px;padding-left:20px;font-size:14px;color:#d9d2c5;line-height:1.6}
+details li{margin-bottom:6px}
+details a,.sheet a{color:var(--gold)}
+code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:5px;font-size:13px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.divider{height:1px;background:var(--line);margin:22px 0 0}
+
+/* random spotlight */
+.sheet.spotlight{max-width:420px;text-align:center;overflow:hidden;
+  background:radial-gradient(ellipse 60% 55% at 50% 0,rgba(255,236,190,.22),transparent 70%),linear-gradient(180deg,#1c1822,#0f0d12)}
+.spot-label{font-family:var(--display);letter-spacing:4px;color:var(--gold);font-size:18px}
+.spot-poster{width:210px;margin:12px auto 0;aspect-ratio:2/3;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--line2),0 30px 60px -20px rgba(0,0,0,.9)}
+.spot-poster img{width:100%;height:100%;object-fit:cover;display:block}
+.spot-poster.rolling{filter:blur(1px) brightness(.85)}
+.spot-poster.landed{animation:land .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes land{from{transform:scale(.85)}}
+.spot-title{font-family:var(--display);font-size:34px;letter-spacing:1px;margin:14px 0 0;line-height:1.05}
+.spot-meta{color:var(--muted);font-size:13.5px}
+.spot-ov{color:#d4cdc0;font-size:13.5px;margin-top:8px!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.spot-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* toast */
+.toasts{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 32px);max-width:420px}
+.toast{background:#26212d;border:1px solid var(--line2);color:var(--text);padding:11px 16px;border-radius:12px;font-size:14px;box-shadow:0 14px 30px -10px rgba(0,0,0,.8);animation:tin .25s ease;text-align:center}
+.toast.err{border-color:rgba(224,54,79,.6)}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .wrap{padding:0 16px}
+  .top{padding-top:calc(16px + env(safe-area-inset-top))}
+  .brand h1{font-size:32px}
+  .brand p{display:none}
+  .offline-pill .long{display:none}
+  .offline-pill{margin-top:4px;white-space:nowrap}
+  .logo{width:42px;height:42px}
+  .top-actions .btn span{display:none}
+  .top-actions .btn{padding:10px}
+  .hero{grid-template-columns:1fr;margin-top:14px}
+  .random{max-width:none;flex-direction:row;font-size:22px;padding:14px 18px;gap:10px}
+  .random .dice{font-size:26px}
+  .marquee-inner{padding:14px}
+  .add{flex-direction:column}
+  .add .btn{width:100%;padding:12px}
+  .row{flex-direction:column}
+  .select{width:100%}
+  .grid{grid-template-columns:repeat(2,1fr);gap:18px 12px}
+  .controls{margin-top:20px}
+  .overlay{align-items:flex-end;padding:0}
+  .sheet,.sheet.wide{max-width:none;border-radius:20px 20px 0 0;max-height:94vh;padding:22px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(40px)}
+  .sheet.spotlight{border-radius:20px 20px 0 0}
+  .editor{grid-template-columns:1fr;gap:16px}
+  .ed-poster{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start}
+  .ed-poster .poster{grid-row:span 4}
+  .ed-poster .small-note{text-align:left}
+  .title-input{font-size:30px}
+  .toasts{bottom:16px}
+}
+@media (min-width:1100px){.grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="m3 7 2.5-4 4 1.2L7 8M10 4.3l4 1.2-2.4 3M14.3 5.6l4 1.1L16 10"/></svg>
+      </div>
+      <div>
+        <h1>Reel <span>List</span></h1>
+        <p>Your personal movie watchlist</p>
+        <div class="offline-pill" id="offlinePill" hidden>● Offline<span class="long"> — your list still works</span></div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn install" id="installBtn" title="Install Reel List as an app" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 7v7m0 0-3-3m3 3 3-3M10 18h4"/></svg><span>Install app</span>
+      </button>
+      <button class="btn ghost" id="exportBtn" title="Export a backup file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Export</span>
+      </button>
+      <button class="btn ghost" id="importBtn" title="Import a backup file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0-4 4m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Import</span>
+      </button>
+      <button class="btn ghost" id="settingsBtn" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span>
+      </button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<section class="wrap hero">
+  <div class="marquee">
+    <div class="marquee-inner">
+      <div class="marquee-label">★ Now adding ★</div>
+      <form class="add" id="addForm" autocomplete="off">
+        <input id="addInput" type="text" placeholder="Type a movie name… e.g. Inception" aria-label="Movie name" enterkeyhint="done">
+        <button class="btn gold" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add movie
+        </button>
+      </form>
+      <p class="hint" id="apiHint"></p>
+    </div>
+  </div>
+  <button class="btn random" id="randomBtn"><span class="dice">🎲</span><span>What should I watch tonight?</span></button>
+</section>
+
+<section class="wrap controls">
+  <div class="tabs" id="statusTabs" role="tablist"></div>
+  <div class="row">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="searchInput" type="search" placeholder="Search my movies by name" aria-label="Search">
+    </div>
+    <select id="sortSelect" class="select" aria-label="Sort">
+      <option value="added-desc">Sort: Recently added</option>
+      <option value="added-asc">Sort: Oldest added</option>
+      <option value="rating-desc">Sort: My rating (high → low)</option>
+      <option value="year-desc">Sort: Year (newest)</option>
+      <option value="year-asc">Sort: Year (oldest)</option>
+      <option value="title">Sort: Title (A → Z)</option>
+    </select>
+  </div>
+  <div class="chips" id="genreChips"></div>
+</section>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <div id="empty"></div>
+</main>
+
+<footer>Everything is saved on this device and works offline. Use <b>Export</b> now and then to keep a backup file.</footer>
+<div class="toasts" id="toasts"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= constants ================= */
+const LS_MOVIES = 'reellist.movies.v1';
+const LS_SETTINGS = 'reellist.settings.v1';
+const LS_UI = 'reellist.ui.v1';
+const GENRES = ['Action','Adventure','Animation','Comedy','Crime','Documentary','Drama','Family','Fantasy','History','Horror','Music','Mystery','Romance','Sci-Fi','Thriller','War','Western'];
+const TMDB_GENRES = {28:'Action',12:'Adventure',16:'Animation',35:'Comedy',80:'Crime',99:'Documentary',18:'Drama',10751:'Family',14:'Fantasy',36:'History',27:'Horror',10402:'Music',9648:'Mystery',10749:'Romance',878:'Sci-Fi',10770:'TV Movie',53:'Thriller',10752:'War',37:'Western'};
+const GENRE_ALIASES = {'science fiction':'Sci-Fi','sci-fi':'Sci-Fi','scifi':'Sci-Fi','musical':'Music','film-noir':'Crime'};
+const STATUS = {
+  want:{label:'Want to watch',color:'var(--want)'},
+  watching:{label:'Watching',color:'var(--watching)'},
+  watched:{label:'Watched',color:'var(--watched)'}
+};
+const TMDB_IMG = 'https://image.tmdb.org/t/p/w500';
+
+/* ================= storage ================= */
+function load(key, fallback){
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+let movies = (load(LS_MOVIES, []) || []).map(sanitize).filter(Boolean);
+let settings = Object.assign({provider:'none', apiKey:''}, load(LS_SETTINGS, {}));
+let ui = Object.assign({status:'all', genre:'all', q:'', sort:'added-desc'}, load(LS_UI, {}));
+ui.q = '';
+
+function save(){
+  try { localStorage.setItem(LS_MOVIES, JSON.stringify(movies)); return true; }
+  catch(e){
+    toast('⚠️ Browser storage is full. Export a backup, then remove some uploaded posters.', true);
+    return false;
+  }
+}
+function saveSettings(){ try { localStorage.setItem(LS_SETTINGS, JSON.stringify(settings)); } catch {} }
+function saveUI(){ try { localStorage.setItem(LS_UI, JSON.stringify({status:ui.status, genre:ui.genre, sort:ui.sort})); } catch {} }
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const find = id => movies.find(m => m.id === id);
+const hasKey = () => settings.provider !== 'none' && settings.apiKey.trim().length > 0;
+const providerName = () => settings.provider === 'tmdb' ? 'TMDB' : 'OMDb';
+function normGenre(g){
+  const t = String(g).trim(); if (!t) return '';
+  return GENRE_ALIASES[t.toLowerCase()] || t;
+}
+function hue(str){ let h = 0; for (const c of String(str)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
+function starsText(n){ return '★'.repeat(n) + `<span class="off">${'★'.repeat(5 - n)}</span>`; }
+
+function sanitize(m){
+  if (!m || typeof m !== 'object' || !String(m.title || '').trim()) return null;
+  return {
+    id: String(m.id || uid()),
+    title: String(m.title).trim().slice(0, 200),
+    year: String(m.year || '').replace(/\D/g, '').slice(0, 4),
+    genres: Array.isArray(m.genres) ? [...new Set(m.genres.map(normGenre).filter(Boolean))] : [],
+    overview: String(m.overview || ''),
+    poster: typeof m.poster === 'string' ? m.poster : '',
+    posterUploaded: !!m.posterUploaded,
+    status: STATUS[m.status] ? m.status : 'want',
+    rating: Math.max(0, Math.min(5, parseInt(m.rating) || 0)),
+    note: String(m.note || ''),
+    addedAt: Number(m.addedAt) || Date.now(),
+    watchedAt: Number(m.watchedAt) || 0,
+    ref: m.ref && typeof m.ref === 'object' ? m.ref : {}
+  };
+}
+
+function placeholderHTML(title){
+  return `<div class="ph" style="--h:${hue(title)}"><span class="ph-icon">🎞️</span><span class="ph-title">${esc(title)}</span></div>`;
+}
+function posterHTML(m){
+  return m.poster
+    ? `<img src="${esc(m.poster)}" alt="Poster of ${esc(m.title)}" loading="lazy" data-title="${esc(m.title)}">`
+    : placeholderHTML(m.title);
+}
+// broken poster URL → fall back to the placeholder
+document.addEventListener('error', e => {
+  const t = e.target;
+  if (t.tagName === 'IMG' && t.dataset.title !== undefined) t.outerHTML = placeholderHTML(t.dataset.title);
+}, true);
+
+function toast(text, isErr){
+  const el = document.createElement('div');
+  el.className = 'toast' + (isErr ? ' err' : '');
+  el.textContent = text;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), isErr ? 5000 : 2800);
+}
+
+/* ================= modals ================= */
+function openModal(html, cls = ''){
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = `<div class="sheet ${cls}" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(ov);
+  document.body.classList.add('noscroll');
+  ov.addEventListener('mousedown', e => { if (e.target === ov) closeModal(ov); });
+  ov.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeModal(ov); });
+  requestAnimationFrame(() => ov.classList.add('show'));
+  return ov;
+}
+function closeModal(ov){
+  ov = ov || [...document.querySelectorAll('.overlay')].pop();
+  if (!ov || !ov.isConnected) return;
+  ov.dispatchEvent(new Event('close'));
+  ov.remove();
+  if (!document.querySelector('.overlay')) document.body.classList.remove('noscroll');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function ask(title, text, buttons){
+  return new Promise(resolve => {
+    let done = false;
+    const ov = openModal(`<h2>${esc(title)}</h2><p class="muted">${text}</p>
+      <div class="btn-row" style="justify-content:flex-end;margin-top:20px">
+        ${buttons.map((b, i) => `<button class="btn sm ${b.kind || ''}" data-i="${i}">${esc(b.label)}</button>`).join('')}
+      </div>`);
+    ov.addEventListener('click', e => {
+      const b = e.target.closest('[data-i]'); if (!b) return;
+      done = true; resolve(buttons[+b.dataset.i].value); closeModal(ov);
+    });
+    ov.addEventListener('close', () => { if (!done) resolve(null); });
+  });
+}
+
+/* ================= rendering ================= */
+function visibleMovies(){
+  const q = ui.q.trim().toLowerCase();
+  const yr = m => parseInt(m.year) || 0;
+  const list = movies.filter(m =>
+    (ui.status === 'all' || m.status === ui.status) &&
+    (ui.genre === 'all' || m.genres.includes(ui.genre)) &&
+    (!q || m.title.toLowerCase().includes(q)));
+  const sorters = {
+    'added-desc': (a, b) => b.addedAt - a.addedAt,
+    'added-asc': (a, b) => a.addedAt - b.addedAt,
+    'rating-desc': (a, b) => b.rating - a.rating || b.addedAt - a.addedAt,
+    'year-desc': (a, b) => yr(b) - yr(a) || a.title.localeCompare(b.title),
+    'year-asc': (a, b) => (yr(a) || 9999) - (yr(b) || 9999) || a.title.localeCompare(b.title),
+    'title': (a, b) => a.title.localeCompare(b.title)
+  };
+  return list.sort(sorters[ui.sort] || sorters['added-desc']);
+}
+
+function renderTabs(){
+  const count = s => movies.filter(m => m.status === s).length;
+  const tabs = [['all', 'All movies', movies.length, 'var(--text)'],
+    ...Object.entries(STATUS).map(([k, v]) => [k, v.label, count(k), v.color])];
+  $('#statusTabs').innerHTML = tabs.map(([k, label, n, color]) =>
+    `<button class="tab ${ui.status === k ? 'on' : ''}" data-status="${k}" role="tab" aria-selected="${ui.status === k}">
+      ${k !== 'all' ? `<span class="dot" style="background:${color}"></span>` : ''}${label}<span class="n">${n}</span></button>`).join('');
+}
+
+function renderGenres(){
+  const pool = movies.filter(m => ui.status === 'all' || m.status === ui.status);
+  const counts = {};
+  pool.forEach(m => m.genres.forEach(g => counts[g] = (counts[g] || 0) + 1));
+  const present = Object.keys(counts).sort((a, b) => {
+    const ia = GENRES.indexOf(a), ib = GENRES.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+  if (ui.genre !== 'all' && !present.includes(ui.genre)) present.unshift(ui.genre);
+  $('#genreChips').innerHTML = present.length ? [
+    `<button class="chip ${ui.genre === 'all' ? 'on' : ''}" data-genre="all">All genres</button>`,
+    ...present.map(g => `<button class="chip ${ui.genre === g ? 'on' : ''}" data-genre="${esc(g)}">${esc(g)}<span class="c">${counts[g] || 0}</span></button>`)
+  ].join('') : '';
+}
+
+function cardHTML(m){
+  const meta = [m.year, m.genres.slice(0, 2).join(', ')].filter(Boolean).join(' · ');
+  return `<article class="card" data-id="${m.id}" tabindex="0" aria-label="${esc(m.title)}">
+    <div class="poster">${posterHTML(m)}
+      <span class="badge b-${m.status}">${STATUS[m.status].label}</span>
+      ${m.rating ? `<span class="rate">★ ${m.rating}</span>` : ''}
+    </div>
+    <div class="info">
+      <h3>${esc(m.title)}</h3>
+      ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
+      ${m.status === 'watched' && m.rating ? `<div class="stars">${starsText(m.rating)}</div>` : ''}
+      ${m.status === 'watched' && m.note ? `<div class="note-snip">“${esc(m.note)}”</div>` : ''}
+    </div>
+  </article>`;
+}
+
+function render(){
+  renderTabs();
+  renderGenres();
+  $('#sortSelect').value = ui.sort;
+  const list = visibleMovies();
+  $('#grid').innerHTML = list.map(cardHTML).join('');
+  const empty = $('#empty');
+  if (!movies.length){
+    empty.innerHTML = `<div class="empty"><div class="reel">🍿</div><div class="big">The screen is empty</div>
+      <div>Start building your watchlist:</div>
+      <ol><li>Type a movie name above and press <b>Add movie</b></li>
+      <li>Tap a poster to set status, genres, rating &amp; notes</li>
+      <li>Optional: add a free API key in <b>Settings</b> for automatic posters</li></ol></div>`;
+  } else if (!list.length){
+    empty.innerHTML = `<div class="empty"><div class="reel">🔍</div><div class="big">No movies match</div>
+      <div>Try another search, status or genre.</div>
+      <div class="btn-row" style="justify-content:center;margin-top:16px"><button class="btn sm" id="clearFilters">Clear filters</button></div></div>`;
+  } else empty.innerHTML = '';
+  renderHint();
+}
+
+function renderHint(){
+  $('#offlinePill').hidden = navigator.onLine;
+  if (!navigator.onLine){
+    $('#apiHint').innerHTML = `📴 You're offline. You can still add, edit and rate movies — online details and new posters will work again when you reconnect.`;
+    return;
+  }
+  $('#apiHint').innerHTML = hasKey()
+    ? `✨ Auto-details are <b style="color:var(--watched)">on</b> via ${providerName()} — posters, genres, year and description are fetched for you.`
+    : `Tip: add a free TMDB or OMDb key in <button type="button" data-open-settings>Settings</button> to fetch posters &amp; details automatically.`;
+}
+
+/* ================= movie actions ================= */
+function createMovie(data){
+  const m = sanitize(Object.assign({id: uid(), addedAt: Date.now(), status: 'want'}, data));
+  movies.unshift(m);
+  save();
+  if (ui.status !== 'all' && ui.status !== m.status) ui.status = 'all';
+  if (ui.genre !== 'all' && !m.genres.includes(ui.genre)) ui.genre = 'all';
+  ui.q = ''; $('#searchInput').value = '';
+  render();
+  flash(m.id);
+  return m;
+}
+function flash(id){
+  const el = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+  if (!el) return;
+  el.classList.add('flash');
+  el.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  setTimeout(() => el.classList.remove('flash'), 1500);
+}
+function update(m, patch){
+  Object.assign(m, patch);
+  if (patch.status === 'watched' && !m.watchedAt) m.watchedAt = Date.now();
+  save(); render();
+}
+
+/* ================= poster upload (resized to save space) ================= */
+function readImage(file){
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) return reject(new Error('Please choose an image file.'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('That image format is not supported.'));
+      img.onload = () => {
+        const s = Math.min(1, 420 / img.width, 630 / img.height);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ================= online lookup (TMDB / OMDb) ================= */
+async function tmdb(path, params){
+  const key = settings.apiKey.trim();
+  const url = new URL('https://api.themoviedb.org/3' + path);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  url.searchParams.set('language', 'en-US');
+  const opts = {};
+  if (key.length > 40) opts.headers = {Authorization: 'Bearer ' + key, accept: 'application/json'}; // "API Read Access Token"
+  else url.searchParams.set('api_key', key); // short "API Key"
+  const res = await fetch(url, opts);
+  if (res.status === 401) throw new Error('TMDB says this API key is invalid. Check it in Settings.');
+  if (!res.ok) throw new Error('TMDB error (' + res.status + '). Please try again.');
+  return res.json();
+}
+async function omdb(params){
+  const url = new URL('https://www.omdbapi.com/');
+  url.searchParams.set('apikey', settings.apiKey.trim());
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const res = await fetch(url);
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 || /invalid api key|not activated/i.test(data.Error || ''))
+    throw new Error('OMDb says: ' + (data.Error || 'invalid API key') + ' (Did you click the activation link in the email?)');
+  if (!res.ok) throw new Error('OMDb error (' + res.status + '). Please try again.');
+  return data;
+}
+async function searchOnline(query){
+  if (settings.provider === 'tmdb'){
+    const d = await tmdb('/search/movie', {query, include_adult: 'false'});
+    return (d.results || []).slice(0, 8).map(r => ({
+      title: r.title, year: (r.release_date || '').slice(0, 4),
+      poster: r.poster_path ? TMDB_IMG + r.poster_path : '',
+      genres: (r.genre_ids || []).map(id => TMDB_GENRES[id]).filter(g => g && g !== 'TV Movie'),
+      overview: r.overview || '', ref: {tmdbId: r.id}
+    }));
+  }
+  const d = await omdb({s: query, type: 'movie'});
+  if (d.Response === 'False'){
+    if (/not found/i.test(d.Error || '')) return [];
+    throw new Error('OMDb: ' + d.Error);
+  }
+  return (d.Search || []).slice(0, 8).map(r => ({
+    title: r.Title, year: String(r.Year || '').slice(0, 4),
+    poster: r.Poster && r.Poster !== 'N/A' ? r.Poster : '',
+    genres: [], overview: '', ref: {imdbId: r.imdbID}, partial: true
+  }));
+}
+async function completeResult(r){
+  if (!r.partial) return r;
+  const d = await omdb({i: r.ref.imdbId, plot: 'short'});
+  return Object.assign({}, r, {
+    genres: d.Genre && d.Genre !== 'N/A' ? d.Genre.split(',').map(normGenre) : [],
+    overview: d.Plot && d.Plot !== 'N/A' ? d.Plot : '',
+    poster: d.Poster && d.Poster !== 'N/A' ? d.Poster : r.poster,
+    partial: false
+  });
+}
+
+/* results picker — mode "add" creates a movie, mode "update" fills an existing one */
+function openResults(query, mode, movieId){
+  const ov = openModal(`<button class="x" data-close aria-label="Close">×</button>
+    <h2>${mode === 'add' ? 'Which movie?' : 'Fetch details'}</h2>
+    <p class="muted">Results for “${esc(query)}” from ${providerName()}</p>
+    <div id="resBody"><div class="spinner"></div></div>`);
+  const body = ov.querySelector('#resBody');
+  const plainBtn = mode === 'add'
+    ? `<button class="btn ghost full" id="addPlain" style="margin-top:12px">Add “${esc(query)}” without online details</button>` : '';
+  let results = [];
+
+  searchOnline(query).then(list => {
+    results = list;
+    if (!list.length){
+      body.innerHTML = `<div class="msg" style="background:rgba(255,255,255,.04);border-color:var(--line);color:var(--muted)">No matches found. Check the spelling, or add it manually.</div>${plainBtn}`;
+      return;
+    }
+    body.innerHTML = `<div class="results">${list.map((r, i) => `
+      <button class="result" data-r="${i}">
+        <div class="thumb">${r.poster ? `<img src="${esc(r.poster)}" alt="" loading="lazy" data-title="${esc(r.title)}">` : placeholderHTML(r.title)}</div>
+        <div><b>${esc(r.title)}</b><span class="yr">${esc(r.year)}</span>
+          ${r.genres.length ? `<div class="gn">${esc(r.genres.join(' · '))}</div>` : ''}
+          ${r.overview ? `<div class="ov">${esc(r.overview)}</div>` : ''}
+        </div>
+      </button>`).join('')}</div>${plainBtn}`;
+  }).catch(err => {
+    body.innerHTML = `<div class="msg">${esc(err.message || 'Could not reach the movie database. Are you online?')}</div>
+      <div class="btn-row">${mode === 'add' ? `<button class="btn sm gold" id="addPlain">Add “${esc(query)}” anyway</button>` : ''}
+      <button class="btn sm ghost" data-open-settings>Open Settings</button></div>`;
+  });
+
+  ov.addEventListener('click', async e => {
+    if (e.target.closest('#addPlain')){
+      closeModal(ov);
+      const m = createMovie({title: query});
+      openEditor(m.id);
+      return;
+    }
+    const btn = e.target.closest('[data-r]');
+    if (!btn) return;
+    body.innerHTML = '<div class="spinner"></div>';
+    let r;
+    try { r = await completeResult(results[+btn.dataset.r]); }
+    catch(err){ r = results[+btn.dataset.r]; toast('Could not load all details: ' + err.message, true); }
+    closeModal(ov);
+    const data = {title: r.title, year: r.year, genres: r.genres, overview: r.overview, ref: r.ref};
+    if (mode === 'add'){
+      if (r.poster) data.poster = r.poster;
+      createMovie(data);
+      toast(`🎬 “${r.title}” added to your list`);
+    } else {
+      const m = find(movieId); if (!m) return;
+      if (r.poster && !(m.posterUploaded && m.poster)) { data.poster = r.poster; data.posterUploaded = false; }
+      update(m, data);
+      closeModal(); // close old editor, reopen with fresh data
+      openEditor(m.id);
+      toast('Details updated ✨');
+    }
+  });
+}
+
+/* ================= add movie ================= */
+$('#addForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const input = $('#addInput');
+  const title = input.value.trim();
+  if (!title){ input.focus(); return; }
+  const dup = movies.find(m => m.title.toLowerCase() === title.toLowerCase());
+  if (dup){
+    const ok = await ask('Already on your list', `“${esc(dup.title)}” is already in your watchlist. Add it again anyway?`,
+      [{label: 'Show it', value: 'show'}, {label: 'Add anyway', value: 'add', kind: 'gold'}]);
+    if (ok === 'show'){ input.value = ''; openEditor(dup.id); return; }
+    if (ok !== 'add') return;
+  }
+  input.value = '';
+  if (hasKey() && navigator.onLine) openResults(title, 'add');
+  else {
+    const m = createMovie({title});
+    openEditor(m.id);
+    toast(hasKey() ? 'Offline — added without online details. Use “Fetch details” later.' : 'Added! Set a poster, genres and status here.');
+  }
+});
+
+/* ================= editor ================= */
+function openEditor(id){
+  const m = find(id); if (!m) return;
+  const allGenres = [...GENRES, ...m.genres.filter(g => !GENRES.includes(g))];
+  const added = new Date(m.addedAt).toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'});
+  const ov = openModal(`<button class="x" data-close aria-label="Close">×</button>
+    <div class="editor">
+      <div class="ed-poster">
+        <div class="poster" id="edPoster">${posterHTML(m)}</div>
+        <label class="btn sm full" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          Upload poster<input type="file" accept="image/*" id="edFile" hidden></label>
+        ${hasKey() ? `<button class="btn sm ghost full" id="edFetch">✨ Fetch details online</button>` : ''}
+        <button class="btn sm ghost full" id="edRmPoster" ${m.poster ? '' : 'hidden'}>Remove poster</button>
+        <div class="small-note">Tip: you can also drag an image onto the poster.</div>
+      </div>
+      <div class="ed-body">
+        <input class="title-input" id="edTitle" value="${esc(m.title)}" aria-label="Title" maxlength="200">
+        <div class="year-row">Year <input class="field" id="edYear" value="${esc(m.year)}" inputmode="numeric" maxlength="4" placeholder="e.g. 2010"></div>
+
+        <div class="label">Status</div>
+        <div class="seg" id="edStatus">${Object.entries(STATUS).map(([k, v]) =>
+          `<button data-s="${k}" class="${m.status === k ? 'on' : ''}">${v.label}</button>`).join('')}</div>
+        <div id="edReview"></div>
+
+        <div class="label">Genres</div>
+        <div class="chips" id="edGenres">${allGenres.map(g =>
+          `<button class="chip ${m.genres.includes(g) ? 'on' : ''}" data-g="${esc(g)}">${esc(g)}</button>`).join('')}</div>
+
+        <div class="label">Description</div>
+        <textarea class="field" id="edOverview" placeholder="What is it about? (optional)">${esc(m.overview)}</textarea>
+
+        <div class="ed-foot">
+          <span class="muted">Added ${added}</span>
+          <button class="btn sm danger" id="edDelete">Delete</button>
+          <button class="btn sm gold" data-close>Done</button>
+        </div>
+      </div>
+    </div>`, 'wide');
+
+  const q = s => ov.querySelector(s);
+  const refreshPoster = () => { q('#edPoster').innerHTML = posterHTML(m); q('#edRmPoster').hidden = !m.poster; };
+
+  function renderReview(){
+    const box = q('#edReview');
+    if (m.status !== 'watched'){
+      box.innerHTML = `<div class="review locked">⭐ Mark it as <b>Watched</b> to give it 1–5 stars and write a short note.</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="review">
+      <div class="rating-row"><span class="lbl">My rating</span>
+        <div class="star-input" id="edStars">${[1,2,3,4,5].map(n =>
+          `<button data-n="${n}" class="${n <= m.rating ? '' : 'off'}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('')}</div>
+        <span class="lbl" id="edRateTxt">${m.rating ? m.rating + ' / 5' : 'Not rated'}</span></div>
+      <textarea class="field" id="edNote" placeholder="My note — what did you think?" maxlength="1000">${esc(m.note)}</textarea>
+    </div>`;
+    q('#edStars').addEventListener('click', e => {
+      const b = e.target.closest('[data-n]'); if (!b) return;
+      const n = +b.dataset.n;
+      update(m, {rating: m.rating === n ? 0 : n});
+      renderReview();
+    });
+    q('#edNote').addEventListener('input', e => { m.note = e.target.value; save(); render(); });
+  }
+  renderReview();
+
+  q('#edTitle').addEventListener('input', e => {
+    const v = e.target.value.trim(); if (!v) return;
+    m.title = v; save(); render();
+    if (!m.poster) refreshPoster();
+  });
+  q('#edYear').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    m.year = e.target.value; save(); render();
+  });
+  q('#edOverview').addEventListener('input', e => { m.overview = e.target.value; save(); });
+  q('#edStatus').addEventListener('click', e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    q('#edStatus').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    update(m, {status: b.dataset.s});
+    renderReview();
+  });
+  q('#edGenres').addEventListener('click', e => {
+    const b = e.target.closest('[data-g]'); if (!b) return;
+    const g = b.dataset.g;
+    const genres = m.genres.includes(g) ? m.genres.filter(x => x !== g) : [...m.genres, g];
+    b.classList.toggle('on');
+    update(m, {genres});
+  });
+
+  async function usePosterFile(file){
+    try {
+      const data = await readImage(file);
+      const prev = {poster: m.poster, posterUploaded: m.posterUploaded};
+      Object.assign(m, {poster: data, posterUploaded: true});
+      if (!save()){ Object.assign(m, prev); return; }
+      render(); refreshPoster(); toast('Poster uploaded 🖼️');
+    } catch(err){ toast(err.message, true); }
+  }
+  q('#edFile').addEventListener('change', e => { usePosterFile(e.target.files[0]); e.target.value = ''; });
+  const drop = q('#edPoster');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); usePosterFile(e.dataTransfer.files[0]); });
+  q('#edRmPoster').addEventListener('click', () => { update(m, {poster: '', posterUploaded: false}); refreshPoster(); });
+  q('#edFetch')?.addEventListener('click', () => openResults(m.title, 'update', m.id));
+  q('#edDelete').addEventListener('click', async () => {
+    const ok = await ask('Delete movie?', `Remove “${esc(m.title)}” from your watchlist? This can’t be undone.`,
+      [{label: 'Cancel', value: false, kind: 'ghost'}, {label: 'Delete', value: true, kind: 'danger'}]);
+    if (!ok) return;
+    movies = movies.filter(x => x.id !== m.id);
+    save(); render(); closeModal(ov);
+    toast('Movie deleted');
+  });
+}
+
+/* ================= random pick ================= */
+function pickRandom(){
+  let pool = movies.filter(m => m.status === 'want');
+  let scope = '';
+  if (ui.genre !== 'all'){
+    const g = pool.filter(m => m.genres.includes(ui.genre));
+    if (g.length){ pool = g; scope = ui.genre; }
+  }
+  if (!pool.length){
+    toast(movies.length ? 'Your “Want to watch” list is empty — add a movie first!' : 'Add some movies to your list first 🍿', true);
+    return;
+  }
+  const ov = openModal(`<button class="x" data-close aria-label="Close">×</button>
+    <div class="spot-label">🎲 Tonight's feature ${scope ? '· ' + esc(scope) : ''}</div>
+    <div class="spot-poster" id="spPoster"></div>
+    <div class="spot-title" id="spTitle"></div>
+    <div class="spot-meta" id="spMeta"></div>
+    <p class="spot-ov" id="spOv"></p>
+    <div class="spot-actions" id="spActions" hidden>
+      <button class="btn sm" id="spAgain">🎲 Spin again</button>
+      <button class="btn sm gold" id="spStart">▶ Start watching</button>
+      <button class="btn sm ghost" id="spOpen">Details</button>
+    </div>`, 'spotlight');
+  const q = s => ov.querySelector(s);
+  let timer = null, chosen = null, last = null;
+  ov.addEventListener('close', () => clearTimeout(timer));
+
+  function show(m){
+    q('#spPoster').innerHTML = posterHTML(m);
+    q('#spTitle').textContent = m.title;
+    q('#spMeta').textContent = [m.year, m.genres.join(', ')].filter(Boolean).join(' · ');
+  }
+  function spin(){
+    q('#spActions').hidden = true; q('#spOv').textContent = '';
+    const poster = q('#spPoster');
+    poster.classList.remove('landed'); poster.classList.add('rolling');
+    let options = pool.length > 1 && last ? pool.filter(m => m !== last) : pool;
+    chosen = options[Math.floor(Math.random() * options.length)];
+    let delay = 55;
+    const step = () => {
+      if (delay > 340 || pool.length === 1){
+        show(chosen); last = chosen;
+        poster.classList.remove('rolling'); void poster.offsetWidth; poster.classList.add('landed');
+        q('#spOv').textContent = chosen.overview;
+        q('#spActions').hidden = false;
+        return;
+      }
+      show(pool[Math.floor(Math.random() * pool.length)]);
+      delay *= 1.17;
+      timer = setTimeout(step, delay);
+    };
+    step();
+  }
+  q('#spAgain').addEventListener('click', spin);
+  q('#spStart').addEventListener('click', () => {
+    update(chosen, {status: 'watching'});
+    closeModal(ov); toast(`🍿 Enjoy “${chosen.title}”!`);
+  });
+  q('#spOpen').addEventListener('click', () => { const id = chosen.id; closeModal(ov); openEditor(id); });
+  spin();
+}
+
+/* ================= settings ================= */
+function openSettings(){
+  let provider = settings.provider;
+  const ov = openModal(`<button class="x" data-close aria-label="Close">×</button>
+    <h2>Settings</h2>
+
+    <h3>Automatic movie details <span class="muted" style="font-weight:400">(optional)</span></h3>
+    <p class="muted" style="font-size:14px">Paste a free API key and Reel List will fetch the <b>poster, genres, year and description</b> when you type a movie name.</p>
+    <div class="seg plain" id="setProv" style="margin-top:12px">
+      <button data-p="none">Off</button><button data-p="tmdb">TMDB</button><button data-p="omdb">OMDb</button>
+    </div>
+    <div id="keyBox">
+      <div class="key-row">
+        <input class="field" id="setKey" type="password" placeholder="Paste your API key here" value="${esc(settings.apiKey)}" autocomplete="off" spellcheck="false">
+        <button class="btn sm ghost" id="setShow">Show</button>
+      </div>
+      <div class="btn-row"><button class="btn sm gold" id="setTest">Test &amp; save key</button></div>
+      <div class="status-line" id="setStatus"></div>
+    </div>
+
+    <details ${provider !== 'omdb' ? 'open' : ''}>
+      <summary>How to get a free TMDB key (recommended)</summary>
+      <ol>
+        <li>Go to <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">themoviedb.org/signup</a> and create a free account.</li>
+        <li>Open the email from TMDB and click the link to <b>verify your account</b>, then log in.</li>
+        <li>Click your profile picture (top right) → <b>Settings</b> → <b>API</b> in the left menu. (Direct link: <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org/settings/api</a>)</li>
+        <li>Click <b>Create</b> / <b>Request an API key</b>, choose <b>Developer</b> and accept the terms of use.</li>
+        <li>Fill in the short form: type of use <b>Personal</b>, application name e.g. <code>My Watchlist</code>, application URL e.g. <code>http://localhost</code>, a one‑line summary such as “Personal movie watchlist”, plus your name and address details. Submit.</li>
+        <li>The API page now shows your <b>API Key</b> (a 32‑character code). Copy it. (The long “API Read Access Token” works too.)</li>
+        <li>Back here: choose <b>TMDB</b> above, paste the key and click <b>Test &amp; save key</b>.</li>
+      </ol>
+    </details>
+    <details ${provider === 'omdb' ? 'open' : ''}>
+      <summary>How to get a free OMDb key</summary>
+      <ol>
+        <li>Go to <a href="https://www.omdbapi.com/apikey.aspx" target="_blank" rel="noopener">omdbapi.com/apikey.aspx</a>.</li>
+        <li>Select <b>FREE! (1,000 daily limit)</b>.</li>
+        <li>Enter your email, first and last name, and a short use, e.g. “Personal watchlist”. Click <b>Submit</b>.</li>
+        <li>Open the email from OMDb and click the <b>activation link</b> — the key won’t work until you do this.</li>
+        <li>Copy the key from the email (8 letters/numbers), choose <b>OMDb</b> above, paste it and click <b>Test &amp; save key</b>.</li>
+      </ol>
+    </details>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">🔒 Your key stays only in this browser and is never included in exported backups. Without a key, you can still upload posters and pick genres yourself.</p>
+
+    <div class="divider"></div>
+    <h3>Install as an app</h3>
+    <div class="install-box">
+      <img class="app-icon" src="icons/icon-192.png" alt="">
+      <div style="font-size:14px" class="muted" id="installInfo"></div>
+    </div>
+    <div class="btn-row" id="installRow"></div>
+
+    <div class="divider"></div>
+    <h3>Backup</h3>
+    <p class="muted" style="font-size:14px">Your list is saved in this browser only. Export a backup file now and then, and use Import to restore it — or to move your list to another device.</p>
+    <div class="btn-row">
+      <button class="btn sm" id="setExport">⬇ Export backup</button>
+      <button class="btn sm" id="setImport">⬆ Import backup</button>
+      <button class="btn sm danger" id="setClear">Delete all movies</button>
+    </div>`, 'wide');
+  ov.querySelector('.sheet').style.maxWidth = '600px';
+  renderInstallInfo(ov);
+
+  const q = s => ov.querySelector(s);
+  const setStatus = (t, cls) => { q('#setStatus').className = 'status-line ' + (cls || ''); q('#setStatus').textContent = t; };
+  function syncProv(){
+    q('#setProv').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.p === provider));
+    q('#keyBox').hidden = provider === 'none';
+  }
+  syncProv();
+  if (hasKey()) setStatus('✓ Auto-details are on with ' + providerName() + '.', 'ok');
+
+  q('#setProv').addEventListener('click', e => {
+    const b = e.target.closest('[data-p]'); if (!b) return;
+    provider = b.dataset.p; syncProv(); setStatus('');
+    if (provider === 'none'){ settings.provider = 'none'; saveSettings(); render(); setStatus(''); toast('Auto-details turned off'); }
+    else if (provider !== settings.provider) setStatus('Paste your ' + (provider === 'tmdb' ? 'TMDB' : 'OMDb') + ' key, then click “Test & save key”.');
+  });
+  q('#setShow').addEventListener('click', () => {
+    const i = q('#setKey'); i.type = i.type === 'password' ? 'text' : 'password';
+    q('#setShow').textContent = i.type === 'password' ? 'Show' : 'Hide';
+  });
+  q('#setTest').addEventListener('click', async () => {
+    const key = q('#setKey').value.trim();
+    if (!key){ setStatus('Please paste a key first.', 'err'); return; }
+    const prev = {...settings};
+    settings.provider = provider; settings.apiKey = key;
+    setStatus('Testing…');
+    q('#setTest').disabled = true;
+    try {
+      const r = await searchOnline('Inception');
+      if (!r.length) throw new Error('The key answered, but returned no results.');
+      saveSettings(); render();
+      setStatus('✓ It works! Key saved. New movies will get posters & details automatically.', 'ok');
+    } catch(err){
+      settings = prev;
+      setStatus('✗ ' + (err.message === 'Failed to fetch' ? 'Could not connect. Check your internet connection.' : err.message), 'err');
+    } finally { q('#setTest').disabled = false; }
+  });
+  q('#setExport').addEventListener('click', exportData);
+  q('#setImport').addEventListener('click', () => $('#importFile').click());
+  q('#setClear').addEventListener('click', async () => {
+    if (!movies.length){ toast('Your list is already empty'); return; }
+    const ok = await ask('Delete ALL movies?', `This removes all ${movies.length} movies from this browser. Export a backup first if you might want them back.`,
+      [{label: 'Cancel', value: false, kind: 'ghost'}, {label: 'Delete everything', value: true, kind: 'danger'}]);
+    if (!ok) return;
+    movies = []; save(); render(); toast('All movies deleted');
+  });
+}
+
+/* ================= export / import ================= */
+function exportData(){
+  if (!movies.length){ toast('Nothing to export yet — add some movies first.'); return; }
+  const data = {app: 'reel-list', version: 1, exportedAt: new Date().toISOString(), movies};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `reel-list-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast(`⬇ Exported ${movies.length} movie${movies.length > 1 ? 's' : ''}`);
+}
+$('#importFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  let list;
+  try {
+    const data = JSON.parse(await file.text());
+    list = (Array.isArray(data) ? data : data.movies);
+    if (!Array.isArray(list)) throw 0;
+    list = list.map(sanitize).filter(Boolean);
+  } catch { toast('That file is not a valid Reel List backup.', true); return; }
+  if (!list.length){ toast('The backup file contains no movies.', true); return; }
+  let mode = 'replace';
+  if (movies.length){
+    mode = await ask('Import backup', `The file contains <b>${list.length}</b> movie${list.length > 1 ? 's' : ''}. You currently have <b>${movies.length}</b>.<br><br><b>Merge</b> adds the movies you don’t have yet. <b>Replace</b> swaps your whole list for the backup.`,
+      [{label: 'Cancel', value: null, kind: 'ghost'}, {label: 'Replace', value: 'replace', kind: 'danger'}, {label: 'Merge', value: 'merge', kind: 'gold'}]);
+    if (!mode) return;
+  }
+  const before = movies;
+  if (mode === 'replace') movies = list;
+  else {
+    const ids = new Set(movies.map(m => m.id));
+    const added = list.filter(m => !ids.has(m.id));
+    movies = [...movies, ...added];
+    list = added;
+  }
+  if (!save()){ movies = before; return; }
+  ui.status = 'all'; ui.genre = 'all';
+  render();
+  toast(mode === 'merge' ? `⬆ Merged ${list.length} new movie${list.length === 1 ? '' : 's'}` : `⬆ Imported ${list.length} movies`);
+});
+
+/* ================= events ================= */
+$('#statusTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-status]'); if (!b) return;
+  ui.status = b.dataset.status; saveUI(); render();
+});
+$('#genreChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-genre]'); if (!b) return;
+  ui.genre = b.dataset.genre; saveUI(); render();
+});
+$('#searchInput').addEventListener('input', e => { ui.q = e.target.value; render(); });
+$('#sortSelect').addEventListener('change', e => { ui.sort = e.target.value; saveUI(); render(); });
+$('#grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) openEditor(c.dataset.id); });
+$('#grid').addEventListener('keydown', e => {
+  const c = e.target.closest('.card');
+  if (c && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); openEditor(c.dataset.id); }
+});
+$('#randomBtn').addEventListener('click', pickRandom);
+$('#settingsBtn').addEventListener('click', openSettings);
+$('#exportBtn').addEventListener('click', exportData);
+$('#importBtn').addEventListener('click', () => $('#importFile').click());
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-open-settings]')){ e.preventDefault(); closeModal(); openSettings(); }
+  if (e.target.closest('#clearFilters')){ ui.status = 'all'; ui.genre = 'all'; ui.q = ''; $('#searchInput').value = ''; saveUI(); render(); }
+});
+// keep tabs in sync if the list is changed in another tab
+window.addEventListener('storage', e => {
+  if (e.key === LS_MOVIES){ movies = (load(LS_MOVIES, []) || []).map(sanitize).filter(Boolean); render(); }
+});
+
+/* ================= installable app (PWA) ================= */
+let installPrompt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  $('#installBtn').hidden = false;
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  $('#installBtn').hidden = true;
+  toast('🎬 Reel List is installed! Find it on your home screen / app list.');
+});
+async function installApp(){
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  const {outcome} = await installPrompt.userChoice;
+  if (outcome === 'accepted') { installPrompt = null; $('#installBtn').hidden = true; }
+}
+$('#installBtn').addEventListener('click', installApp);
+
+function renderInstallInfo(ov){
+  const info = ov.querySelector('#installInfo'), row = ov.querySelector('#installRow');
+  if (isStandalone()){
+    info.innerHTML = '✓ You are using the installed app. It works offline.';
+  } else if (installPrompt){
+    info.innerHTML = 'Install Reel List to get its own icon, open it full-screen and use it offline.';
+    row.innerHTML = '<button class="btn sm gold" id="setInstall">Install app</button>';
+    row.querySelector('#setInstall').addEventListener('click', () => { closeModal(ov); installApp(); });
+  } else if (location.protocol === 'file:'){
+    info.innerHTML = 'To install it, the app must be opened from a website address (https://…), not from a file. Publish it for free first — see the instructions that came with the app.';
+  } else if (isIOS){
+    info.innerHTML = 'On iPhone/iPad: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.';
+  } else {
+    info.innerHTML = 'Android (Chrome): tap <b>⋮</b> → <b>Add to Home screen</b> / <b>Install app</b>.<br>Laptop (Chrome/Edge): click the <b>install icon</b> at the right end of the address bar, or menu → <b>Install</b>.';
+  }
+}
+
+window.addEventListener('online', () => { renderHint(); toast('Back online ✓'); });
+window.addEventListener('offline', () => { renderHint(); toast('You are offline — your list still works'); });
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker failed', err));
+  });
+  // ask the browser not to clear our saved data when the device is low on space
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+}
+
+render();
+
+// home-screen shortcut: "What should I watch tonight?"
+if (new URLSearchParams(location.search).get('action') === 'random'){
+  history.replaceState(null, '', location.pathname);
+  setTimeout(pickRandom, 300);
+}
+})();
+</script>
+</body>
+</html>
